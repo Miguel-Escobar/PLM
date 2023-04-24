@@ -422,18 +422,24 @@ function get_var_score(var::Int64, z::Float64, current_node::BBNode)
    # Esta función calcula el score de una variable para el strong branching
     lp_plus, lp_vars = branch_lp(current_node,var,1)
     optimize!(lp_plus)
-    if termination_status == MOI.OPTIMAL
+    if termination_status(lp_plus) == MOI.OPTIMAL 
       delta_plus = objective_value(lp_plus) - z
     else
-      delta_plus = 10
+      delta_plus = Inf
     end
     lp_minus, lp_vars = branch_lp(current_node,var,0)
     optimize!(lp_minus)
-    if termination_status(lp_minus) == MOI.OPTIMAL
+    if termination_status(lp_minus) == MOI.OPTIMAL 
       delta_minus = objective_value(lp_minus) - z
     else
-      delta_minus = 10
+      if termination_status(lp_plus) == MOI.OPTIMAL 
+        delta_minus = Inf
+      else
+        delta_minus = -Inf
+      end
     end
+    
+
     return min(delta_plus,delta_minus)
 end
 
@@ -446,7 +452,7 @@ function find_branching_variable(sol::Array{Float64,1}, current_node::BBNode)
   scores = [0.0 for i in 1:n_vars]  
   for s in 1:n_vars
     v = sol[s]
-    if ((v > integer_precision) | (1-v > integer_precision)) && ! is_variable_branched_on(current_node,s)
+    if ((v > integer_precision) && (1-v > integer_precision)) && ! is_variable_branched_on(current_node,s)
       scores[s] = get_var_score(s,z,current_node)
     end
   end
