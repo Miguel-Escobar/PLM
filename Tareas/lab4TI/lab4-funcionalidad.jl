@@ -19,7 +19,7 @@ function cargaInst(dirInst,instId)
        util[c,l] = round.(10/((Fclt[l,1]-Clnt[c,1])^2+(Fclt[l,2]-Clnt[c,2])^2), digits=3)
    end
 
-   return util, costo
+   return util, costo, Fclt, Clnt
 end
 
 function genArcos(x, util)
